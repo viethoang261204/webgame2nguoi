@@ -3,8 +3,18 @@ const ROWS = 8, COLS = 14;
 const R = ROWS + 2, C = COLS + 2; // lưới có viền trống để đường nối đi vòng ngoài
 const TOTAL = (ROWS * COLS) / 2;
 const TIME_LIMIT = 10 * 60 * 1000;
-const ICONS = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐤',
+// Hình Pokémon cổ điển (icon pixel từ github.com/PokeAPI/sprites), lỗi tải thì dùng emoji
+const SPRITE_URL = (id) => `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/versions/generation-vii/icons/${id}.png`;
+const POKEMON = [25, 4, 7, 1, 39, 133, 35, 54, 60, 52, 37, 151, 147, 175, 183, 158, 155, 152, 172, 143, 94, 12, 16, 43, 79, 131, 26, 27, 77, 179, 174, 86, 61, 41];
+const EMOJI = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐤',
   '🦄', '🐝', '🐞', '🦋', '🐢', '🐙', '🦀', '🐬', '🐳', '🦒', '🦓', '🐘', '🦔', '🦜', '🦩', '🐌'];
+const ICONS = POKEMON.map((id, k) => ({ id, emoji: EMOJI[k] }));
+const spriteFailed = new Set();
+for (const ic of ICONS) {
+  const img = new Image();
+  img.onerror = () => { spriteFailed.add(ic.id); if (mode) renderBoard(); };
+  img.src = SPRITE_URL(ic.id);
+}
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
 let mode = null;   // 'online' | 'solo'
@@ -41,6 +51,7 @@ function getBest() { try { return +localStorage.getItem('pikaBest') || null; } c
 function setBest(v) { try { localStorage.setItem('pikaBest', v); } catch {} }
 
 window.lucide?.createIcons();
+document.querySelectorAll('.logo i[data-p]').forEach((el) => { el.innerHTML = `<img src="${SPRITE_URL(el.dataset.p)}" alt="">`; });
 
 // ---------- Map: sinh ngẫu nhiên theo seed để 2 người cùng 1 map ----------
 function rng(seed) {
@@ -391,27 +402,29 @@ $('#historyBtn').addEventListener('click', () => showResult(true));
 function layout() {
   const wrap = $('#boardWrap');
   const w = wrap.clientWidth, h = wrap.clientHeight;
-  const tr = h > w * 1.05; // màn dọc: xoay bàn cho to hơn
+  const tr = h > w * 1.2; // màn dọc: xoay bàn cho to hơn
   const nx = tr ? ROWS : COLS, ny = tr ? COLS : ROWS;
-  const tile = Math.max(16, Math.floor(Math.min(w / (nx + 0.8), h / (ny + 0.8))));
-  const border = tile * 0.4;
-  L = { tr, tile, border, nx, ny, W: nx * tile + border * 2, H: ny * tile + border * 2 };
+  const ASPECT = 1.18; // ô cao hơn rộng như bản cổ điển
+  const tw = Math.max(16, Math.floor(Math.min(w / (nx + 0.8), h / ((ny + 0.8) * ASPECT))));
+  const th = Math.floor(tw * ASPECT);
+  const bx = tw * 0.4, by = th * 0.4;
+  L = { tr, tw, th, bx, by, tile: tw, nx, ny, W: nx * tw + bx * 2, H: ny * th + by * 2 };
   const b = $('#board');
   b.style.width = L.W + 'px';
   b.style.height = L.H + 'px';
 }
 function centerPx(r, c) {
   const x = L.tr ? r : c, y = L.tr ? c : r;
-  const f = (v, n) => (v === 0 ? L.border / 2 : v === n + 1 ? L.border + n * L.tile + L.border / 2 : L.border + (v - 1) * L.tile + L.tile / 2);
-  return [f(x, L.nx), f(y, L.ny)];
+  const f = (v, n, b, t) => (v === 0 ? b / 2 : v === n + 1 ? b + n * t + b / 2 : b + (v - 1) * t + t / 2);
+  return [f(x, L.nx, L.bx, L.tw), f(y, L.ny, L.by, L.th)];
 }
 function renderBoard() {
   if (!L || !grid) return;
   const b = $('#board');
   b.innerHTML = '';
   tileEls = {};
-  const gap = Math.max(1.5, L.tile * 0.05);
-  const size = L.tile - gap * 2;
+  const gap = Math.max(1, L.tw * 0.035);
+  const sw = L.tw - gap * 2, sh = L.th - gap * 2;
   const frag = document.createDocumentFragment();
   for (let r = 1; r <= ROWS; r++) {
     for (let c = 1; c <= COLS; c++) {
@@ -423,8 +436,11 @@ function renderBoard() {
       if (i === selected) el.classList.add('sel');
       if (hintPair?.includes(i)) el.classList.add('hint');
       el.dataset.i = i;
-      el.style.cssText = `left:${cx - size / 2}px;top:${cy - size / 2}px;width:${size}px;height:${size}px;font-size:${size * 0.66}px`;
-      el.innerHTML = `<span>${icons[grid[i] - 1]}</span>`;
+      el.style.cssText = `left:${cx - sw / 2}px;top:${cy - sh / 2}px;width:${sw}px;height:${sh}px;font-size:${sw * 0.66}px`;
+      const ic = icons[grid[i] - 1];
+      el.innerHTML = spriteFailed.has(ic.id)
+        ? `<span>${ic.emoji}</span>`
+        : `<img src="${SPRITE_URL(ic.id)}" alt="" draggable="false">`;
       tileEls[i] = el;
       frag.appendChild(el);
     }
