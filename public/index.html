@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Caro Vô Hạn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- MENU -->
+  <div id="menu" class="screen">
+    <div class="card">
+      <h1><span class="x">X</span><span class="o">O</span> Caro Vô Hạn</h1>
+      <p class="sub">Bàn cờ không giới hạn · kéo để di chuyển · cuộn / chụm 2 ngón để zoom</p>
+
+      <label class="field">
+        <span>Số quân liên tiếp để thắng</span>
+        <select id="winLen">
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+          <option value="6">6</option>
+        </select>
+      </label>
+
+      <button class="btn primary" data-mode="online">🌐 Tạo phòng online (gửi link)</button>
+      <button class="btn" data-mode="bot">🤖 Chơi với máy</button>
+      <button class="btn" data-mode="local">👥 2 người cùng máy</button>
+
+      <div class="join">
+        <input id="roomInput" placeholder="Nhập mã phòng...">
+        <button class="btn small" id="joinBtn">Vào</button>
+      </div>
+      <p id="menuErr" class="err"></p>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="screen hidden">
+    <canvas id="board"></canvas>
+
+    <div class="topbar">
+      <button class="icon" id="backBtn" title="Menu">☰</button>
+      <div id="status">...</div>
+      <div id="score"></div>
+    </div>
+
+    <div id="share" class="share hidden">
+      <span>Gửi link này cho bạn:</span>
+      <input id="shareLink" readonly>
+      <button class="btn small primary" id="copyBtn">Copy</button>
+    </div>
+
+    <div class="bottombar">
+      <button class="btn small" id="centerBtn">🎯 Về giữa</button>
+      <button class="btn small" id="undoBtn">↶ Đi lại</button>
+      <button class="btn small primary" id="rematchBtn">🔄 Ván mới</button>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
