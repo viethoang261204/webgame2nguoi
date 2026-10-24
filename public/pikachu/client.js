@@ -3,12 +3,11 @@ const ROWS = 8, COLS = 14;
 const R = ROWS + 2, C = COLS + 2; // lưới có viền trống để đường nối đi vòng ngoài
 const TOTAL = (ROWS * COLS) / 2;
 const TIME_LIMIT = 10 * 60 * 1000;
-// Hình Pokémon cổ điển (icon pixel từ github.com/PokeAPI/sprites), lỗi tải thì dùng emoji
-const SPRITE_URL = (id) => `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/versions/generation-vii/icons/${id}.png`;
-const POKEMON = [25, 4, 7, 1, 39, 133, 35, 54, 60, 52, 37, 151, 147, 175, 183, 158, 155, 152, 172, 143, 94, 12, 16, 43, 79, 131, 26, 27, 77, 179, 174, 86, 61, 41];
+// 36 ô hình gốc của game Pikachu cổ điển (40x50, đã có khung ô), lỗi tải thì dùng emoji
+const SPRITE_URL = (id) => `https://cdn.jsdelivr.net/gh/nguyenphutai8402/Pikachu-Connect@db536e9cfcdcb330f5b0a82012c20ad0aa5fd147/image/pieces${id}.png`;
 const EMOJI = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐤',
-  '🦄', '🐝', '🐞', '🦋', '🐢', '🐙', '🦀', '🐬', '🐳', '🦒', '🦓', '🐘', '🦔', '🦜', '🦩', '🐌'];
-const ICONS = POKEMON.map((id, k) => ({ id, emoji: EMOJI[k] }));
+  '🦄', '🐝', '🐞', '🦋', '🐢', '🐙', '🦀', '🐬', '🐳', '🦒', '🦓', '🐘', '🦔', '🦜', '🦩', '🐌', '🐲', '🦖'];
+const ICONS = EMOJI.map((emoji, k) => ({ id: k + 1, emoji }));
 const spriteFailed = new Set();
 for (const ic of ICONS) {
   const img = new Image();
@@ -402,12 +401,14 @@ $('#historyBtn').addEventListener('click', () => showResult(true));
 function layout() {
   const wrap = $('#boardWrap');
   const w = wrap.clientWidth, h = wrap.clientHeight;
+  if (!w || !h) return;
   const tr = h > w * 1.2; // màn dọc: xoay bàn cho to hơn
   const nx = tr ? ROWS : COLS, ny = tr ? COLS : ROWS;
-  const ASPECT = 1.18; // ô cao hơn rộng như bản cổ điển
-  const tw = Math.max(16, Math.floor(Math.min(w / (nx + 0.8), h / ((ny + 0.8) * ASPECT))));
+  const ASPECT = tr ? 1.12 : 1.25; // ô 40x50 như bản cổ điển (màn dọc hơi vuông lại cho to)
+  const PAD = 0.3; // viền trống quanh bàn (tính theo số ô)
+  const tw = Math.max(16, Math.floor(Math.min(w / (nx + PAD * 2), h / ((ny + PAD * 2) * ASPECT))));
   const th = Math.floor(tw * ASPECT);
-  const bx = tw * 0.4, by = th * 0.4;
+  const bx = tw * PAD, by = th * PAD;
   L = { tr, tw, th, bx, by, tile: tw, nx, ny, W: nx * tw + bx * 2, H: ny * th + by * 2 };
   const b = $('#board');
   b.style.width = L.W + 'px';
@@ -432,7 +433,7 @@ function renderBoard() {
       if (!grid[i]) continue;
       const [cx, cy] = centerPx(r, c);
       const el = document.createElement('div');
-      el.className = 'tile';
+      el.className = spriteFailed.has(icons[grid[i] - 1].id) ? 'tile' : 'tile img';
       if (i === selected) el.classList.add('sel');
       if (hintPair?.includes(i)) el.classList.add('hint');
       el.dataset.i = i;
@@ -457,7 +458,15 @@ function drawPath(path) {
   $('#board').appendChild(svg);
   setTimeout(() => svg.remove(), 500);
 }
-window.addEventListener('resize', () => { if (mode) { layout(); renderBoard(); } });
+let lastWrap = '';
+new ResizeObserver(() => {
+  const wrap = $('#boardWrap');
+  const key = `${wrap.clientWidth}x${wrap.clientHeight}`;
+  if (!mode || key === lastWrap) return;
+  lastWrap = key;
+  layout();
+  renderBoard();
+}).observe($('#boardWrap'));
 
 // Bản đồ thu nhỏ của đối thủ
 function drawMini() {

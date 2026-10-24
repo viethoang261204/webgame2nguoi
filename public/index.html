@@ -46,10 +46,12 @@
       background: linear-gradient(150deg, #fff6ee 0%, #fde0c9 45%, #f5c7a6 100%);
       box-shadow: inset 2px 2px 0 rgba(255,255,255,.9), inset -2px -3px 0 rgba(178,106,64,.45), 0 6px 14px rgba(0,0,0,.4);
       display: grid; place-items: center; font-style: normal; }
-    .tiles i img { width: 120%; image-rendering: pixelated; }
+    .tiles i { position: relative; border: 0; height: 50px; }
+    .tiles i img { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    .tiles i.sel img { opacity: .75; }
     .tiles i.sel { background: linear-gradient(150deg, #fff9c4, #ffe066 55%, #f4c430); box-shadow: 0 0 0 2px #ff9f1c; transform: translateY(-3px); }
     .tiles i.gone { visibility: hidden; }
-    .badge { position: absolute; top: 12px; left: 12px; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px;
+    .badge { position: absolute; z-index: 2; top: 12px; left: 12px; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px;
       background: rgba(0,0,0,.45); border: 1px solid var(--line-strong); }
     .badge.new { background: linear-gradient(135deg, #ffb703, #ff6b3d); border: 0; color: #1a1000; }
     .info { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
@@ -88,9 +90,9 @@
       <a class="game glass" href="/pikachu/">
         <div class="art pika">
           <span class="badge new">✨ Mới</span>
-          <div class="tiles"><i data-p="25"></i><i data-p="4" class="sel"></i><i data-p="7"></i><i class="gone"></i><i data-p="39"></i>
-            <i data-p="1"></i><i data-p="7"></i><i class="gone"></i><i data-p="4" class="sel"></i><i data-p="133"></i>
-            <i data-p="39"></i><i data-p="1"></i><i data-p="25"></i><i data-p="133"></i><i data-p="54"></i></div>
+          <div class="tiles"><i data-p="2"></i><i data-p="1" class="sel"></i><i data-p="7"></i><i class="gone"></i><i data-p="4"></i>
+            <i data-p="11"></i><i data-p="7"></i><i class="gone"></i><i data-p="1" class="sel"></i><i data-p="12"></i>
+            <i data-p="4"></i><i data-p="11"></i><i data-p="2"></i><i data-p="12"></i><i data-p="16"></i></div>
         </div>
         <div class="info">
           <h3>Pikachu Solo</h3>
@@ -115,7 +117,7 @@
   <script>
     window.lucide?.createIcons();
     document.querySelectorAll('.tiles i[data-p]').forEach((el) => {
-      el.innerHTML = `<img src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/versions/generation-vii/icons/${el.dataset.p}.png" alt="">`;
+      el.innerHTML = `<img src="https://cdn.jsdelivr.net/gh/nguyenphutai8402/Pikachu-Connect@db536e9cfcdcb330f5b0a82012c20ad0aa5fd147/image/pieces${el.dataset.p}.png" alt="">`;
     });
   </script>
 </body>
