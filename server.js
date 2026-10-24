@@ -11,7 +11,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (_, res) => res.send('ok'));
 
 require('./games/pikachu')(io);
-require('./games/whoami')(io);
+
+// ---------- Các game 2 người dùng engine chung: /g/<game>/ ----------
+const { RULES } = require('./games/engine');
+require('./games/engine')(io, app);
+app.get('/g/:game', (req, res, next) => {
+  if (!RULES[req.params.game]) return next();
+  res.sendFile(path.join(__dirname, 'public', 'play.html'));
+});
 
 // ---------- Caro (namespace mặc định) ----------
 const rooms = new Map();

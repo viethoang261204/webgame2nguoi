@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-base-300 text-base-content antialiased; font-feature-settings: "tnum" 0; }
+  .num { font-variant-numeric: tabular-nums; }
+  svg.lucide { width: 1.15em; height: 1.15em; stroke-width: 2; flex-shrink: 0; }
+}
+
+@layer components {
+  /* nền trang: lưới mờ + quầng sáng */
+  .app-bg {
+    background:
+      radial-gradient(900px 500px at 10% -10%, rgba(109, 93, 252, .18), transparent 60%),
+      radial-gradient(700px 400px at 100% 0%, rgba(45, 212, 191, .10), transparent 60%),
+      theme('colors.base-300' / 1);
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .panel { @apply rounded-box border border-white/5 bg-base-100/80 backdrop-blur; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-medium text-neutral-content; }
+  .kbd-code { @apply rounded-md bg-primary/15 px-2 py-0.5 font-mono text-sm tracking-widest text-primary; }
+
+  /* thẻ người chơi */
+  .player { @apply flex items-center gap-3 rounded-box border border-white/5 bg-base-100/70 px-3 py-2 transition; }
+  .player.active { @apply border-primary/60 shadow-[0_0_0_3px_rgba(109,93,252,.18)]; }
+  .avatar-ini { @apply grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold text-white; }
+  .clock { @apply rounded-lg bg-base-300 px-3 py-1.5 font-mono text-lg font-semibold tabular-nums; }
+  .clock.running { @apply bg-base-content text-base-300; }
+  .clock.low { @apply bg-error text-white; }
+
+  /* ô bàn cờ chung */
+  .cell-hint::after { content: ""; @apply absolute inset-0 m-auto h-1/4 w-1/4 rounded-full bg-black/25; }
+  .hint-dot { @apply pointer-events-none absolute inset-0 m-auto h-[28%] w-[28%] rounded-full; }
+}
+
+@layer utilities {
+  .anim-drop { animation: drop .45s cubic-bezier(.33, 1.35, .55, 1) both; }
+  .anim-pop { animation: pop .28s cubic-bezier(.2, 1.4, .4, 1) both; }
+  .anim-flip { animation: flip .4s ease both; }
+  .anim-fade { animation: fade .3s ease both; }
+  .anim-pulse-ring { animation: ring 1.4s ease-in-out infinite; }
+  .preserve-3d { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .rotate-y-180 { transform: rotateY(180deg); }
+  .perspective { perspective: 800px; }
+}
+
+@keyframes drop { from { transform: translateY(var(--drop-from, -400%)); } to { transform: translateY(0); } }
+@keyframes pop { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes flip { 0% { transform: rotateY(0) scale(1); } 50% { transform: rotateY(90deg) scale(1.08); } 100% { transform: rotateY(0) scale(1); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ring { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .55); } 50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); } }

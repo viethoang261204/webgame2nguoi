@@ -193,3 +193,4 @@ input::placeholder { color: #5d6288; }
   .tool { height: 44px; } .tool span { display: none; }
   .logo { display: none; }
 }
+.modal-emoji svg.lucide { width: 60px; height: 60px; color: var(--gold); stroke-width: 1.8; }

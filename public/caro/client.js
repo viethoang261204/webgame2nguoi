@@ -6,16 +6,16 @@ const COARSE = matchMedia('(pointer: coarse)').matches;
 
 // Mỗi ván mới đổi 1 theme
 const THEMES = [
-  { name: 'Neon', emoji: '🌌', bg: ['#12152b', '#090b16'], grid: 'rgba(140,150,255,0.07)', x: '#ff4d6d', o: '#3ddcff', a1: '#7c5cff', a2: '#b14dff', win: '#ffd166', glow: true },
-  { name: 'Sakura', emoji: '🌸', bg: ['#2a1622', '#12080f'], grid: 'rgba(255,170,210,0.08)', x: '#ff6fa5', o: '#8ff0c8', a1: '#ff5c9d', a2: '#ff9a8b', win: '#fff1a8', glow: true },
-  { name: 'Ocean', emoji: '🌊', bg: ['#0b2640', '#03101d'], grid: 'rgba(120,200,255,0.08)', x: '#ffb347', o: '#4fd1ff', a1: '#1e7bff', a2: '#00c6ff', win: '#ffffff', glow: true },
-  { name: 'Forest', emoji: '🌲', bg: ['#14291c', '#07120b'], grid: 'rgba(160,230,170,0.08)', x: '#ff7b54', o: '#9be564', a1: '#25a35a', a2: '#8bd450', win: '#ffe066', glow: true },
-  { name: 'Sunset', emoji: '🌅', bg: ['#2e1531', '#120713'], grid: 'rgba(255,170,140,0.08)', x: '#ffd23f', o: '#ff5e99', a1: '#ff6b3d', a2: '#ff2e8a', win: '#ffffff', glow: true },
-  { name: 'Cyberpunk', emoji: '🤖', bg: ['#14051f', '#030008'], grid: 'rgba(255,43,214,0.10)', x: '#ff2bd6', o: '#00f0ff', a1: '#ff2bd6', a2: '#7a00ff', win: '#f5ff3b', glow: true },
-  { name: 'Giấy kẻ ô', emoji: '📝', bg: ['#f7f2e6', '#e6dcc7'], grid: 'rgba(70,90,140,0.20)', x: '#d7263d', o: '#1b4f9c', a1: '#c47b2b', a2: '#e0a458', win: '#2a9d4b', glow: false },
-  { name: 'Matrix', emoji: '💚', bg: ['#04180b', '#000000'], grid: 'rgba(57,255,20,0.09)', x: '#39ff14', o: '#e8fff0', a1: '#16a34a', a2: '#22c55e', win: '#39ff14', glow: true },
-  { name: 'Lava', emoji: '🌋', bg: ['#2a0e06', '#0d0402'], grid: 'rgba(255,120,60,0.09)', x: '#ff4500', o: '#ffc04d', a1: '#e63e00', a2: '#ff8c1a', win: '#ffffff', glow: true },
-  { name: 'Băng giá', emoji: '❄️', bg: ['#1a2a3f', '#0a1220'], grid: 'rgba(200,230,255,0.10)', x: '#a78bfa', o: '#e0f7ff', a1: '#60a5fa', a2: '#a78bfa', win: '#7dd3fc', glow: true },
+  { name: 'Neon', bg: ['#12152b', '#090b16'], grid: 'rgba(140,150,255,0.07)', x: '#ff4d6d', o: '#3ddcff', a1: '#7c5cff', a2: '#b14dff', win: '#ffd166', glow: true },
+  { name: 'Sakura', bg: ['#2a1622', '#12080f'], grid: 'rgba(255,170,210,0.08)', x: '#ff6fa5', o: '#8ff0c8', a1: '#ff5c9d', a2: '#ff9a8b', win: '#fff1a8', glow: true },
+  { name: 'Ocean', bg: ['#0b2640', '#03101d'], grid: 'rgba(120,200,255,0.08)', x: '#ffb347', o: '#4fd1ff', a1: '#1e7bff', a2: '#00c6ff', win: '#ffffff', glow: true },
+  { name: 'Forest', bg: ['#14291c', '#07120b'], grid: 'rgba(160,230,170,0.08)', x: '#ff7b54', o: '#9be564', a1: '#25a35a', a2: '#8bd450', win: '#ffe066', glow: true },
+  { name: 'Sunset', bg: ['#2e1531', '#120713'], grid: 'rgba(255,170,140,0.08)', x: '#ffd23f', o: '#ff5e99', a1: '#ff6b3d', a2: '#ff2e8a', win: '#ffffff', glow: true },
+  { name: 'Cyberpunk', bg: ['#14051f', '#030008'], grid: 'rgba(255,43,214,0.10)', x: '#ff2bd6', o: '#00f0ff', a1: '#ff2bd6', a2: '#7a00ff', win: '#f5ff3b', glow: true },
+  { name: 'Giấy kẻ ô', bg: ['#f7f2e6', '#e6dcc7'], grid: 'rgba(70,90,140,0.20)', x: '#d7263d', o: '#1b4f9c', a1: '#c47b2b', a2: '#e0a458', win: '#2a9d4b', glow: false },
+  { name: 'Matrix', bg: ['#04180b', '#000000'], grid: 'rgba(57,255,20,0.09)', x: '#39ff14', o: '#e8fff0', a1: '#16a34a', a2: '#22c55e', win: '#39ff14', glow: true },
+  { name: 'Lava', bg: ['#2a0e06', '#0d0402'], grid: 'rgba(255,120,60,0.09)', x: '#ff4500', o: '#ffc04d', a1: '#e63e00', a2: '#ff8c1a', win: '#ffffff', glow: true },
+  { name: 'Băng giá', bg: ['#1a2a3f', '#0a1220'], grid: 'rgba(200,230,255,0.10)', x: '#a78bfa', o: '#e0f7ff', a1: '#60a5fa', a2: '#a78bfa', win: '#7dd3fc', glow: true },
 ];
 const COLORS = { X: THEMES[0].x, O: THEMES[0].o };
 let T = THEMES[0];
@@ -37,7 +37,7 @@ function applyTheme(i, announce) {
   r.setProperty('--gold', T.win);
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', T.bg[1]);
   dirty = true;
-  if (announce) toast(`${T.emoji} Theme mới: ${T.name}`);
+  if (announce) toast(`Theme mới: ${T.name}`);
 }
 
 let socket = null;
@@ -161,7 +161,7 @@ function ensureSocket() {
         if (res.error) return toast(res.error);
         S.myMark = res.mark;
         applyServer(res.state);
-        toast('Đã kết nối lại ✅');
+        toast('Đã kết nối lại');
       });
     }
     connectedBefore = true;
@@ -198,7 +198,7 @@ function applyServer(st) {
     if (p !== S.myMark) vibrate(15);
   }
   if (prevMoves > 0 && S.moves.length === 0) { anims.clear(); hideModal(); centerView(); }
-  if (!hadOpponent && S.players.X && S.players.O && S.roomId) toast('Đối thủ đã vào phòng! 🔥');
+  if (!hadOpponent && S.players.X && S.players.O && S.roomId) toast('Đối thủ đã vào phòng');
   if (S.winner && !hadWinner) onWin();
   saveSession();
   render();
@@ -267,7 +267,7 @@ function shareUrl() { return `${location.origin}${location.pathname}?room=${S.ro
 $('#copyBtn').addEventListener('click', async () => {
   const inp = $('#shareLink');
   try { await navigator.clipboard.writeText(inp.value); } catch { inp.select(); document.execCommand('copy'); }
-  toast('Đã copy link! ✅');
+  toast('Đã copy link');
 });
 if (navigator.share) {
   $('#nativeShareBtn').classList.remove('hidden');
@@ -282,10 +282,11 @@ function onWin() {
   const iWon = S.mode === 'online' ? S.winner === S.myMark : S.mode === 'bot' ? S.winner === 'X' : true;
   vibrate(iWon ? [40, 60, 40, 60, 80] : 200);
   let emoji, title, sub;
-  if (S.mode === 'local') { emoji = '🏆'; title = `${S.winner} thắng!`; sub = `${S.winLen} quân liên tiếp`; }
-  else if (iWon) { emoji = '🏆'; title = 'Bạn thắng!'; sub = S.mode === 'bot' ? 'Máy cũng phải chịu thua 😎' : 'Quá đỉnh, đối thủ bó tay'; }
-  else { emoji = S.mode === 'bot' ? '🤖' : '😵'; title = 'Bạn thua!'; sub = S.mode === 'bot' ? 'Máy thắng rồi, gỡ lại không?' : 'Làm ván nữa gỡ lại nào'; }
-  $('#modalEmoji').textContent = emoji;
+  if (S.mode === 'local') { emoji = 'trophy'; title = `${S.winner} thắng!`; sub = `${S.winLen} quân liên tiếp`; }
+  else if (iWon) { emoji = 'trophy'; title = 'Bạn thắng!'; sub = S.mode === 'bot' ? 'Máy cũng phải chịu thua' : 'Quá đỉnh, đối thủ bó tay'; }
+  else { emoji = S.mode === 'bot' ? 'bot' : 'frown'; title = 'Bạn thua!'; sub = S.mode === 'bot' ? 'Máy thắng rồi, gỡ lại không?' : 'Làm ván nữa gỡ lại nào'; }
+  $('#modalEmoji').innerHTML = `<i data-lucide="${emoji}"></i>`;
+  window.lucide?.createIcons();
   $('#modalTitle').textContent = title;
   $('#modalSub').textContent = sub;
   if (iWon && window.confetti) {
@@ -419,14 +420,14 @@ function updateUI() {
   let text;
   if (S.mode === 'online') {
     const me = S.myMark;
-    if (S.winner) text = S.winner === me ? `🎉 Bạn thắng!` : `${pill(S.winner)} thắng`;
+    if (S.winner) text = S.winner === me ? 'Bạn thắng!' : `${pill(S.winner)} thắng`;
     else if (waiting) text = S.moves.length ? `<span class="thinking">Đối thủ đã thoát</span>` : `Bạn là ${pill(me)} <small>· chờ đối thủ</small>`;
     else text = S.turn === me ? `${pill(me)} Lượt của bạn` : `${pill(S.turn)} <span class="thinking">Đối thủ đang nghĩ</span>`;
   } else if (S.mode === 'bot') {
-    if (S.winner) text = S.winner === 'X' ? '🎉 Bạn thắng máy!' : '🤖 Máy thắng!';
+    if (S.winner) text = S.winner === 'X' ? 'Bạn thắng máy!' : 'Máy thắng!';
     else text = S.turn === 'X' ? `${pill('X')} Lượt của bạn` : `${pill('O')} <span class="thinking">Máy đang nghĩ</span>`;
   } else {
-    text = S.winner ? `🎉 ${pill(S.winner)} thắng!` : `${pill(S.turn)} Lượt ${S.turn}`;
+    text = S.winner ? `${pill(S.winner)} thắng!` : `${pill(S.turn)} Lượt ${S.turn}`;
   }
   st.innerHTML = text + ` <small>· ${S.winLen} ô</small>`;
   st.classList.toggle('win', !!S.winner);

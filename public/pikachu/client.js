@@ -228,7 +228,7 @@ function ensureSocket() {
         if (res.error) return toast(res.error);
         slot = res.slot;
         onState(res.state);
-        toast('Đã kết nối lại ✅');
+        toast('Đã kết nối lại');
       });
     }
     connectedBefore = true;
@@ -274,8 +274,8 @@ function onState(st) {
     newRound(st, saved);
   }
   const opp = 1 - slot;
-  if (prev && prev.players[opp] && !st.players[opp]) toast('Đối thủ đã thoát 😢');
-  if (prev && !prev.players[opp] && st.players[opp] && st.state !== 'waiting') toast('Đối thủ đã vào lại 🔥');
+  if (prev && prev.players[opp] && !st.players[opp]) toast('Đối thủ đã thoát');
+  if (prev && !prev.players[opp] && st.players[opp] && st.state !== 'waiting') toast('Đối thủ đã vào lại');
   if (st.state === 'over' && (!prev || prev.state !== 'over' || prev.round !== st.round)) showResult();
   drawMini();
   updateUI();
@@ -359,7 +359,7 @@ function removePair(a, b, path) {
     clearHint();
     shuffleGrid(grid);
     setTimeout(renderBoard, 320);
-    toast('Hết nước đi, tự động đảo bài 🔀');
+    toast('Hết nước đi, tự động đảo bài');
   }
   sendProgress();
   updateUI();
@@ -384,7 +384,7 @@ $('#shuffleBtn').addEventListener('click', () => {
   renderBoard();
   sendProgress();
   updateUI();
-  toast('Đã đảo bài 🔀');
+  toast('Đã đảo bài');
 });
 
 function rematch() {
@@ -508,7 +508,7 @@ function updateUI() {
   if (mode === 'solo') {
     me.querySelector('.pc-wins').textContent = '';
     op.querySelector('.pc-name b').textContent = 'Kỷ lục';
-    op.querySelector('.pc-wins').textContent = '🏆';
+    op.querySelector('.pc-wins').textContent = '';
     op.querySelector('.pc-time').textContent = fmt(getBest());
     op.querySelector('.pc-pairs').textContent = 'thời gian tốt nhất';
     op.querySelector('.pc-bar').classList.add('hidden');
@@ -516,9 +516,9 @@ function updateUI() {
     op.classList.remove('offline', 'done', 'winner');
   } else {
     const p = room.prog[opp] || { cleared: 0 };
-    me.querySelector('.pc-wins').textContent = `🏆 ${room.wins[slot]}`;
+    me.querySelector('.pc-wins').textContent = `${room.wins[slot]} thắng`;
     op.querySelector('.pc-name b').textContent = 'Đối thủ';
-    op.querySelector('.pc-wins').textContent = `🏆 ${room.wins[opp]}`;
+    op.querySelector('.pc-wins').textContent = `${room.wins[opp]} thắng`;
     op.querySelector('.pc-pairs').textContent = `${p.cleared}/${TOTAL} cặp`;
     op.querySelector('.pc-bar').classList.remove('hidden');
     op.querySelector('.mini').classList.remove('hidden');
@@ -594,16 +594,16 @@ function showResult(manual = false) {
   if (!room) return;
   const opp = 1 - slot;
   const h = room.history.at(-1);
-  let emoji = '📊', title = 'Bảng thành tích', sub = '';
+  let emoji = 'bar-chart-3', title = 'Bảng thành tích', sub = '';
   if (!manual && h) {
     if (mode === 'solo') {
-      if (h.winner === 0) { emoji = h.record ? '🥇' : '🎉'; title = h.record ? 'Kỷ lục mới!' : 'Hoàn thành!'; sub = `Thời gian: ${fmt(h.times[0])}`; }
-      else { emoji = '⏰'; title = 'Hết giờ!'; sub = `Ăn được ${h.cleared[0]}/${TOTAL} cặp`; }
-    } else if (h.winner === slot) { emoji = '🏆'; title = 'Bạn thắng!'; sub = h.times[slot] != null ? `Ăn hết trong ${fmt(h.times[slot])}` : 'Ăn nhiều cặp hơn khi hết giờ'; }
-    else if (h.winner === opp) { emoji = '😵'; title = 'Bạn thua!'; sub = h.times[opp] != null ? `Đối thủ ăn hết trong ${fmt(h.times[opp])}` : 'Đối thủ ăn nhiều cặp hơn'; }
-    else { emoji = '🤝'; title = 'Hòa!'; sub = 'Bằng số cặp khi hết giờ'; }
+      if (h.winner === 0) { emoji = h.record ? 'medal' : 'circle-check'; title = h.record ? 'Kỷ lục mới!' : 'Hoàn thành!'; sub = `Thời gian: ${fmt(h.times[0])}`; }
+      else { emoji = 'timer-off'; title = 'Hết giờ!'; sub = `Ăn được ${h.cleared[0]}/${TOTAL} cặp`; }
+    } else if (h.winner === slot) { emoji = 'trophy'; title = 'Bạn thắng!'; sub = h.times[slot] != null ? `Ăn hết trong ${fmt(h.times[slot])}` : 'Ăn nhiều cặp hơn khi hết giờ'; }
+    else if (h.winner === opp) { emoji = 'frown'; title = 'Bạn thua!'; sub = h.times[opp] != null ? `Đối thủ ăn hết trong ${fmt(h.times[opp])}` : 'Đối thủ ăn nhiều cặp hơn'; }
+    else { emoji = 'handshake'; title = 'Hòa!'; sub = 'Bằng số cặp khi hết giờ'; }
   }
-  $('#mEmoji').textContent = emoji;
+  $('#mEmoji').innerHTML = `<i data-lucide="${emoji}"></i>`;
   $('#mTitle').textContent = title;
   $('#mSub').textContent = sub;
 
@@ -616,7 +616,7 @@ function showResult(manual = false) {
     const rows = mode === 'solo' ? [[0, 'Bạn', 'me']] : [[slot, 'Bạn', 'me'], [opp, 'Đối thủ', 'opp']];
     for (const [i, name, cls] of rows) {
       const win = h.winner === i;
-      html += `<tr><td><span class="tag ${cls}"></span>${name}${win ? ' 👑' : ''}</td><td class="${win ? 'win' : ''}">${h.times[i] != null ? fmt(h.times[i]) : '—'}</td><td>${h.cleared[i]}/${TOTAL}</td></tr>`;
+      html += `<tr><td><span class="tag ${cls}"></span>${name}${win ? ' <i data-lucide="crown" class="crown"></i>' : ''}</td><td class="${win ? 'win' : ''}">${h.times[i] != null ? fmt(h.times[i]) : '—'}</td><td>${h.cleared[i]}/${TOTAL}</td></tr>`;
     }
     html += '</table>';
   }
@@ -625,7 +625,7 @@ function showResult(manual = false) {
     if (mode === 'solo') {
       html += '<tr><th>Ván</th><th>Kết quả</th><th></th></tr>';
       for (const x of [...room.history].reverse())
-        html += `<tr><td>#${x.round}</td><td class="${x.winner === 0 ? 'win' : ''}">${cellResult(x, 0)}</td><td>${x.record ? '🥇 Kỷ lục' : ''}</td></tr>`;
+        html += `<tr><td>#${x.round}</td><td class="${x.winner === 0 ? 'win' : ''}">${cellResult(x, 0)}</td><td>${x.record ? '<i data-lucide="medal" class="crown"></i> Kỷ lục' : ''}</td></tr>`;
     } else {
       html += '<tr><th>Ván</th><th><span class="tag me"></span>Bạn</th><th><span class="tag opp"></span>Đối thủ</th></tr>';
       for (const x of [...room.history].reverse())
@@ -639,6 +639,7 @@ function showResult(manual = false) {
   $('#mRematch').disabled = room.state === 'playing' && mode === 'online';
   $('#mClose').lastChild.textContent = manual ? ' Đóng' : ' Xem bàn';
   if (!manual && h && ((mode === 'solo' && h.winner === 0) || (mode === 'online' && h.winner === slot))) confettiBurst();
+  window.lucide?.createIcons();
   $('#modal').classList.remove('hidden');
 }
 function hideModal() { $('#modal').classList.add('hidden'); }
@@ -656,7 +657,7 @@ function toast(msg) {
 $('#copyBtn').addEventListener('click', async () => {
   const inp = $('#shareLink');
   try { await navigator.clipboard.writeText(inp.value); } catch { inp.select(); document.execCommand('copy'); }
-  toast('Đã copy link! ✅');
+  toast('Đã copy link');
 });
 if (navigator.share) {
   $('#nativeShareBtn').classList.remove('hidden');

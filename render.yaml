@@ -10,3 +10,6 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
+      # khóa mã hóa trạng thái phòng, Render tự sinh 1 lần và giữ nguyên qua các lần deploy
+      - key: SECRET
+        generateValue: true
