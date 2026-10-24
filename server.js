@@ -40,7 +40,47 @@ function publicState(room) {
     line: room.line,
     players: { X: !!room.players.X, O: !!room.players.O },
     score: room.score,
+    starter: room.starter,
+    theme: room.theme,
   };
+}
+
+function makeRoom(id, winLen) {
+  return {
+    id, winLen,
+    players: { X: null, O: null },
+    board: new Map(), moves: [],
+    turn: 'X', starter: 'X',
+    winner: null, line: null,
+    score: { X: 0, O: 0, draw: 0 },
+    theme: 0,
+    cleanup: null,
+  };
+}
+
+// Rebuild a room from a client's copy (after a server restart / redeploy)
+function restoreRoom(id, st) {
+  const winLen = [3, 4, 5, 6].includes(st?.winLen) ? st.winLen : 5;
+  const room = makeRoom(id, winLen);
+  const isMark = (p) => p === 'X' || p === 'O';
+  for (const m of Array.isArray(st?.moves) ? st.moves.slice(0, 20000) : []) {
+    if (!Array.isArray(m) || !Number.isInteger(m[0]) || !Number.isInteger(m[1]) || !isMark(m[2])) continue;
+    const key = `${m[0]},${m[1]}`;
+    if (room.board.has(key)) continue;
+    room.board.set(key, m[2]);
+    room.moves.push([m[0], m[1], m[2]]);
+  }
+  if (isMark(st?.turn)) room.turn = st.turn;
+  if (isMark(st?.starter)) room.starter = st.starter;
+  const last = room.moves.at(-1);
+  if (last) {
+    const line = checkWin(room.board, last[0], last[1], last[2], winLen);
+    if (line) { room.winner = last[2]; room.line = line; }
+  }
+  const n = (v) => (Number.isInteger(v) && v >= 0 && v < 1e6 ? v : 0);
+  room.score = { X: n(st?.score?.X), O: n(st?.score?.O), draw: n(st?.score?.draw) };
+  room.theme = n(st?.theme);
+  return room;
 }
 
 function resetRoom(room) {
@@ -50,21 +90,15 @@ function resetRoom(room) {
   room.line = null;
   room.starter = room.starter === 'X' ? 'O' : 'X';
   room.turn = room.starter;
+  room.theme++;
 }
 
 io.on('connection', (socket) => {
   socket.on('create', (opts, cb) => {
     const winLen = [3, 4, 5, 6].includes(opts?.winLen) ? opts.winLen : 5;
     const id = genId();
-    const room = {
-      id, winLen,
-      players: { X: socket.id, O: null },
-      board: new Map(), moves: [],
-      turn: 'X', starter: 'X',
-      winner: null, line: null,
-      score: { X: 0, O: 0, draw: 0 },
-      cleanup: null,
-    };
+    const room = makeRoom(id, winLen);
+    room.players.X = socket.id;
     rooms.set(id, room);
     socket.join(id);
     socket.data.room = id;
@@ -79,6 +113,28 @@ io.on('connection', (socket) => {
     if (!room.players.X) mark = 'X';
     else if (!room.players.O) mark = 'O';
     if (!mark) return cb?.({ error: 'Phòng đã đủ 2 người.' });
+    clearTimeout(room.cleanup);
+    room.players[mark] = socket.id;
+    socket.join(room.id);
+    socket.data.room = room.id;
+    socket.data.mark = mark;
+    cb?.({ id: room.id, mark, state: publicState(room) });
+    io.to(room.id).emit('state', publicState(room));
+  });
+
+  // Client reconnecting with its saved room (server may have restarted)
+  socket.on('resume', (data, cb) => {
+    const id = String(data?.id || '').slice(0, 16);
+    if (!/^[a-z0-9]+$/.test(id)) return cb?.({ error: 'Mã phòng không hợp lệ.' });
+    let room = rooms.get(id);
+    if (!room) { room = restoreRoom(id, data.state); rooms.set(id, room); }
+    const live = (sid) => sid && io.sockets.sockets.has(sid);
+    let mark = data.mark === 'O' ? 'O' : 'X';
+    if (live(room.players[mark]) && room.players[mark] !== socket.id) {
+      const other = mark === 'X' ? 'O' : 'X';
+      if (live(room.players[other])) return cb?.({ error: 'Phòng đã đủ 2 người.' });
+      mark = other;
+    }
     clearTimeout(room.cleanup);
     room.players[mark] = socket.id;
     socket.join(room.id);

@@ -2,8 +2,43 @@ const $ = (s) => document.querySelector(s);
 const canvas = $('#board');
 const ctx = canvas.getContext('2d');
 const DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
-const COLORS = { X: '#ff4d6d', O: '#3ddcff' };
 const COARSE = matchMedia('(pointer: coarse)').matches;
+
+// Mỗi ván mới đổi 1 theme
+const THEMES = [
+  { name: 'Neon', emoji: '🌌', bg: ['#12152b', '#090b16'], grid: 'rgba(140,150,255,0.07)', x: '#ff4d6d', o: '#3ddcff', a1: '#7c5cff', a2: '#b14dff', win: '#ffd166', glow: true },
+  { name: 'Sakura', emoji: '🌸', bg: ['#2a1622', '#12080f'], grid: 'rgba(255,170,210,0.08)', x: '#ff6fa5', o: '#8ff0c8', a1: '#ff5c9d', a2: '#ff9a8b', win: '#fff1a8', glow: true },
+  { name: 'Ocean', emoji: '🌊', bg: ['#0b2640', '#03101d'], grid: 'rgba(120,200,255,0.08)', x: '#ffb347', o: '#4fd1ff', a1: '#1e7bff', a2: '#00c6ff', win: '#ffffff', glow: true },
+  { name: 'Forest', emoji: '🌲', bg: ['#14291c', '#07120b'], grid: 'rgba(160,230,170,0.08)', x: '#ff7b54', o: '#9be564', a1: '#25a35a', a2: '#8bd450', win: '#ffe066', glow: true },
+  { name: 'Sunset', emoji: '🌅', bg: ['#2e1531', '#120713'], grid: 'rgba(255,170,140,0.08)', x: '#ffd23f', o: '#ff5e99', a1: '#ff6b3d', a2: '#ff2e8a', win: '#ffffff', glow: true },
+  { name: 'Cyberpunk', emoji: '🤖', bg: ['#14051f', '#030008'], grid: 'rgba(255,43,214,0.10)', x: '#ff2bd6', o: '#00f0ff', a1: '#ff2bd6', a2: '#7a00ff', win: '#f5ff3b', glow: true },
+  { name: 'Giấy kẻ ô', emoji: '📝', bg: ['#f7f2e6', '#e6dcc7'], grid: 'rgba(70,90,140,0.20)', x: '#d7263d', o: '#1b4f9c', a1: '#c47b2b', a2: '#e0a458', win: '#2a9d4b', glow: false },
+  { name: 'Matrix', emoji: '💚', bg: ['#04180b', '#000000'], grid: 'rgba(57,255,20,0.09)', x: '#39ff14', o: '#e8fff0', a1: '#16a34a', a2: '#22c55e', win: '#39ff14', glow: true },
+  { name: 'Lava', emoji: '🌋', bg: ['#2a0e06', '#0d0402'], grid: 'rgba(255,120,60,0.09)', x: '#ff4500', o: '#ffc04d', a1: '#e63e00', a2: '#ff8c1a', win: '#ffffff', glow: true },
+  { name: 'Băng giá', emoji: '❄️', bg: ['#1a2a3f', '#0a1220'], grid: 'rgba(200,230,255,0.10)', x: '#a78bfa', o: '#e0f7ff', a1: '#60a5fa', a2: '#a78bfa', win: '#7dd3fc', glow: true },
+];
+const COLORS = { X: THEMES[0].x, O: THEMES[0].o };
+let T = THEMES[0];
+let themeIdx = 0;
+
+function rgba(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function applyTheme(i, announce) {
+  themeIdx = i;
+  T = THEMES[((i % THEMES.length) + THEMES.length) % THEMES.length];
+  COLORS.X = T.x; COLORS.O = T.o;
+  const r = document.documentElement.style;
+  r.setProperty('--x', T.x);
+  r.setProperty('--o', T.o);
+  r.setProperty('--accent', T.a1);
+  r.setProperty('--accent2', T.a2);
+  r.setProperty('--gold', T.win);
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', T.bg[1]);
+  dirty = true;
+  if (announce) toast(`${T.emoji} Theme mới: ${T.name}`);
+}
 
 let socket = null;
 let S = null; // game state
@@ -32,8 +67,24 @@ function newState(mode, winLen) {
     players: { X: true, O: true },
     score: { X: 0, O: 0, draw: 0 },
     starter: 'X',
+    theme: 0,
   };
 }
+
+// Lưu phòng online để reload trang / server restart vẫn vào lại được
+function saveSession() {
+  if (!S || S.mode !== 'online' || !S.roomId) return;
+  try {
+    sessionStorage.setItem('caroRoom', JSON.stringify({
+      id: S.roomId, mark: S.myMark,
+      state: { moves: S.moves, turn: S.turn, winLen: S.winLen, score: S.score, starter: S.starter, theme: S.theme },
+    }));
+  } catch {}
+}
+function loadSession(id) {
+  try { const v = JSON.parse(sessionStorage.getItem('caroRoom')); return v && v.id === id ? v : null; } catch { return null; }
+}
+function clearSession() { try { sessionStorage.removeItem('caroRoom'); } catch {} }
 
 // ---------- Menu ----------
 document.querySelectorAll('#winLen button').forEach((b) => b.addEventListener('click', () => {
@@ -71,15 +122,18 @@ function start(mode) {
     });
     return;
   }
+  applyTheme(S.theme);
   showGame();
   render();
 }
 
 function joinRoom(id) {
   ensureSocket();
-  socket.emit('join', id, (res) => {
+  const saved = loadSession(id);
+  socket.emit(saved ? 'resume' : 'join', saved || id, (res) => {
     if (res.error) {
       $('#menuErr').textContent = res.error;
+      clearSession();
       history.replaceState(null, '', location.pathname);
       return;
     }
@@ -96,9 +150,25 @@ function joinRoom(id) {
 function ensureSocket() {
   if (socket) return;
   socket = io();
+  let connectedBefore = false;
+  socket.on('connect', () => {
+    // Mất mạng / server deploy lại -> tự vào lại phòng cũ, giữ nguyên bàn cờ
+    if (connectedBefore && S?.mode === 'online' && S.roomId) {
+      socket.emit('resume', {
+        id: S.roomId, mark: S.myMark,
+        state: { moves: S.moves, turn: S.turn, winLen: S.winLen, score: S.score, starter: S.starter, theme: S.theme },
+      }, (res) => {
+        if (res.error) return toast(res.error);
+        S.myMark = res.mark;
+        applyServer(res.state);
+        toast('Đã kết nối lại ✅');
+      });
+    }
+    connectedBefore = true;
+  });
   socket.on('state', applyServer);
   socket.on('chat', (m) => toast(`${m.from}: ${m.text}`));
-  socket.on('disconnect', () => S?.mode === 'online' && toast('Mất kết nối server...'));
+  socket.on('disconnect', () => S?.mode === 'online' && toast('Mất kết nối, đang kết nối lại...'));
 }
 
 function applyServer(st) {
@@ -114,6 +184,13 @@ function applyServer(st) {
   S.winLen = st.winLen;
   S.players = st.players;
   S.score = st.score;
+  if (st.starter) S.starter = st.starter;
+  const firstSync = !S.synced;
+  S.synced = true;
+  if (firstSync || (st.theme ?? 0) !== S.theme) {
+    S.theme = st.theme ?? 0;
+    applyTheme(S.theme, !firstSync);
+  }
   pending = null;
   if (S.moves.length > prevMoves) {
     const [x, y, p] = S.moves.at(-1);
@@ -123,11 +200,13 @@ function applyServer(st) {
   if (prevMoves > 0 && S.moves.length === 0) { anims.clear(); hideModal(); centerView(); }
   if (!hadOpponent && S.players.X && S.players.O && S.roomId) toast('Đối thủ đã vào phòng! 🔥');
   if (S.winner && !hadWinner) onWin();
+  saveSession();
   render();
 }
 
 function leaveGame() {
   if (S?.mode === 'online' && socket) { socket.disconnect(); socket = null; }
+  clearSession();
   S = null;
   hideModal();
   history.replaceState(null, '', location.pathname);
@@ -154,11 +233,13 @@ function rematch() {
   pending = null;
   if (S.mode === 'online') return socket.emit('rematch');
   if (!S.winner && S.moves.length) S.score.draw++;
-  const { mode, winLen, score, starter } = S;
+  const { mode, winLen, score, starter, theme } = S;
   S = newState(mode, winLen);
   S.score = score;
   S.starter = starter === 'X' ? 'O' : 'X';
   S.turn = S.starter;
+  S.theme = theme + 1;
+  applyTheme(S.theme, true);
   anims.clear();
   centerView();
   render();
@@ -208,7 +289,7 @@ function onWin() {
   $('#modalTitle').textContent = title;
   $('#modalSub').textContent = sub;
   if (iWon && window.confetti) {
-    const c = S.mode === 'local' ? [COLORS[S.winner], '#ffd166', '#ffffff'] : ['#7c5cff', '#b14dff', '#ffd166', '#3ddcff', '#ff4d6d'];
+    const c = S.mode === 'local' ? [COLORS[S.winner], T.win, '#ffffff'] : [T.a1, T.a2, T.win, T.x, T.o];
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: c });
     setTimeout(() => {
       confetti({ particleCount: 60, angle: 60, spread: 60, origin: { x: 0, y: 0.7 }, colors: c });
@@ -428,8 +509,8 @@ function draw(now) {
 
   // background with soft vignette
   const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.75);
-  g.addColorStop(0, '#12152b');
-  g.addColorStop(1, '#090b16');
+  g.addColorStop(0, T.bg[0]);
+  g.addColorStop(1, T.bg[1]);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 
@@ -438,32 +519,32 @@ function draw(now) {
   const y0 = Math.floor(-oy / s), y1 = Math.ceil((H - oy) / s);
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.strokeStyle = 'rgba(140,150,255,0.07)';
+  ctx.strokeStyle = T.grid;
   for (let i = x0; i <= x1; i++) { const X = Math.round(ox + i * s) + 0.5; ctx.moveTo(X, 0); ctx.lineTo(X, H); }
   for (let j = y0; j <= y1; j++) { const Y = Math.round(oy + j * s) + 0.5; ctx.moveTo(0, Y); ctx.lineTo(W, Y); }
   ctx.stroke();
   // origin marker
-  ctx.fillStyle = 'rgba(124,92,255,0.35)';
+  ctx.fillStyle = rgba(T.a1, 0.5);
   ctx.beginPath(); ctx.arc(ox, oy, 2.5, 0, Math.PI * 2); ctx.fill();
 
   // last move highlight
   const last = S.moves.at(-1);
   if (last && !S.winner) {
     roundRect(ox + last[0] * s + 3, oy + last[1] * s + 3, s - 5, s - 5, s * 0.18);
-    ctx.fillStyle = last[2] === 'X' ? 'rgba(255,77,109,0.12)' : 'rgba(61,220,255,0.10)';
+    ctx.fillStyle = rgba(COLORS[last[2]], 0.12);
     ctx.fill();
-    ctx.strokeStyle = last[2] === 'X' ? 'rgba(255,77,109,0.45)' : 'rgba(61,220,255,0.45)';
+    ctx.strokeStyle = rgba(COLORS[last[2]], 0.45);
     ctx.stroke();
   }
 
   // win cells
   if (S.line) {
-    ctx.fillStyle = 'rgba(255,209,102,0.14)';
+    ctx.fillStyle = rgba(T.win, 0.16);
     for (const [x, y] of S.line) { roundRect(ox + x * s + 3, oy + y * s + 3, s - 5, s - 5, s * 0.18); ctx.fill(); }
   }
 
   // marks
-  const glow = S.moves.length < 400;
+  const glow = T.glow && S.moves.length < 400;
   for (const [x, y, p] of S.moves) {
     const cx = ox + x * s, cy = oy + y * s;
     if (cx < -s || cy < -s || cx > W || cy > H) continue;
@@ -497,8 +578,8 @@ function draw(now) {
     const ax = ox + (a[0] + 0.5) * s, ay = oy + (a[1] + 0.5) * s;
     const bx = ox + (b[0] + 0.5) * s, by = oy + (b[1] + 0.5) * s;
     ctx.save();
-    ctx.strokeStyle = '#ffd166';
-    ctx.shadowColor = '#ffd166';
+    ctx.strokeStyle = T.win;
+    ctx.shadowColor = T.win;
     ctx.shadowBlur = 18;
     ctx.lineCap = 'round';
     ctx.lineWidth = Math.max(4, s * 0.13);
