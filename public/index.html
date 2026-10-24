@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090b16">
-  <title>Game 2 Người</title>
+  <title>Game Cùng Bạn</title>
   <script>
     // Link cũ dạng /?room=xxx là phòng caro
     if (new URLSearchParams(location.search).get('room')) location.replace('/caro/' + location.search);
@@ -36,6 +36,14 @@
     .art { height: 170px; display: grid; place-items: center; position: relative; overflow: hidden; }
     .art.caro { background: radial-gradient(circle at 50% 40%, #2a1f5c, #12142a); }
     .art.pika { background: radial-gradient(circle at 50% 40%, #5c4a10, #1f1a0a); }
+    .art.who { background: radial-gradient(circle at 50% 40%, #5a2d4a, #1c1024); }
+    .faces { display: flex; gap: 14px; align-items: flex-end; }
+    .face { position: relative; font-size: 52px; line-height: 1; padding-top: 30px; }
+    .face:nth-child(2) { font-size: 62px; }
+    .pn { position: absolute; top: 0; left: 50%; transform: translateX(-50%) rotate(var(--r)); background: #ffe45c; color: #3b2f00;
+      font-family: "Comic Sans MS", cursive; font-size: 13px; font-weight: 700; padding: 3px 7px; border-radius: 2px; white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(0,0,0,.4); }
+    .game:nth-child(3) { animation-delay: .16s; } .game:nth-child(4) { animation-delay: .24s; }
     .art.soon { background: repeating-linear-gradient(45deg, #151830 0 14px, #12142a 14px 28px); }
     .xo { display: grid; grid-template-columns: repeat(3, 40px); gap: 6px; transform: rotate(-6deg); }
     .xo i { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,.05); display: grid; place-items: center;
@@ -69,7 +77,7 @@
   <div class="wrap">
     <header>
       <div class="brand glass"><span class="dot"></span> Không cần tài khoản · gửi link là solo</div>
-      <h1>Game <span>2 Người</span></h1>
+      <h1>Game <span>Cùng Bạn</span></h1>
       <p>Chọn game, tạo phòng, gửi link cho bạn bè và vào trận ngay.</p>
     </header>
 
@@ -98,6 +106,23 @@
           <h3>Pikachu Solo</h3>
           <p>Nối thú cổ điển. Hai người cùng một map, đua xem ai ăn hết trước. Có bảng tính giờ trực tiếp.</p>
           <div class="tags"><span>⚔️ Solo 1v1</span><span>⏱️ Đua giờ</span><span>🧩 Cùng map</span></div>
+          <span class="btn primary play"><i data-lucide="play"></i> Chơi ngay</span>
+        </div>
+      </a>
+
+      <a class="game glass" href="/whoami/">
+        <div class="art who">
+          <span class="badge new">✨ Mới</span>
+          <div class="faces">
+            <div class="face"><span class="pn" style="--r:-6deg">Doraemon</span>🐶</div>
+            <div class="face"><span class="pn" style="--r:5deg">???</span>🤔</div>
+            <div class="face"><span class="pn" style="--r:-3deg">Sơn Tùng</span>🦊</div>
+          </div>
+        </div>
+        <div class="info">
+          <h3>Tôi Là Ai?</h3>
+          <p>Ai cũng thấy nhân vật dán trên trán bạn, trừ bạn. Hỏi câu có / không để đoán ra mình là ai!</p>
+          <div class="tags"><span>🎉 2–10 người</span><span>❓ Hỏi đáp</span><span>✍️ Tự đặt nhân vật</span></div>
           <span class="btn primary play"><i data-lucide="play"></i> Chơi ngay</span>
         </div>
       </a>

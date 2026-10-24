@@ -11,6 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (_, res) => res.send('ok'));
 
 require('./games/pikachu')(io);
+require('./games/whoami')(io);
 
 // ---------- Caro (namespace mặc định) ----------
 const rooms = new Map();
