@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#090b16">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Pikachu Solo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/ui.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-blobs"><span></span><span></span><span></span></div>
+
+  <!-- MENU -->
+  <div id="menu" class="screen">
+    <div class="card">
+      <a class="home-link" href="/"><i data-lucide="arrow-left"></i> Trang chủ</a>
+      <div class="logo">
+        <i>🐶</i><i class="sel">🐱</i><i>🐸</i><i>🦊</i>
+        <i>🐼</i><i>🐸</i><i class="sel">🐱</i><i>🐵</i>
+      </div>
+      <h1>Pikachu <span>Solo</span></h1>
+      <p class="sub">Nối 2 hình giống nhau, đường nối không quá 2 lần rẽ.<br>Hai người cùng một map, ai ăn hết trước thắng!</p>
+
+      <div class="modes">
+        <button class="mode featured" data-mode="online">
+          <div class="mode-ic"><i data-lucide="swords"></i></div>
+          <div class="mode-tx"><b>Solo online</b><span>Tạo phòng &amp; gửi link cho bạn</span></div>
+          <i data-lucide="chevron-right" class="chev"></i>
+        </button>
+        <button class="mode" data-mode="solo">
+          <div class="mode-ic yellow"><i data-lucide="timer"></i></div>
+          <div class="mode-tx"><b>Luyện tập</b><span>Chơi một mình, phá kỷ lục</span></div>
+          <i data-lucide="chevron-right" class="chev"></i>
+        </button>
+      </div>
+
+      <div class="divider"><span>hoặc vào phòng có sẵn</span></div>
+      <div class="join">
+        <input id="roomInput" placeholder="Mã phòng hoặc link..." autocapitalize="off" autocomplete="off" spellcheck="false">
+        <button class="btn primary sq" id="joinBtn" aria-label="Vào phòng"><i data-lucide="log-in"></i></button>
+      </div>
+      <p id="menuErr" class="err"></p>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="screen hidden">
+    <div class="head">
+      <button class="icon glass" id="backBtn" aria-label="Thoát"><i data-lucide="arrow-left"></i></button>
+      <div class="head-mid glass">
+        <span id="roundLbl">Ván 1</span>
+        <span class="sep"></span>
+        <span id="limitLbl"><i data-lucide="hourglass"></i> 10:00</span>
+      </div>
+      <button class="icon glass" id="historyBtn" aria-label="Bảng thành tích"><i data-lucide="trophy"></i></button>
+    </div>
+
+    <div class="scores">
+      <div class="pcard me glass" id="cardMe">
+        <div class="pc-top"><span class="pc-name"><span class="dot"></span><b>Bạn</b></span><span class="pc-wins"></span></div>
+        <div class="pc-time">0:00.0</div>
+        <div class="pc-bar"><i></i></div>
+        <div class="pc-sub"><span class="pc-pairs">0/56 cặp</span></div>
+      </div>
+      <div class="pcard opp glass" id="cardOpp">
+        <div class="pc-top"><span class="pc-name"><span class="dot"></span><b>Đối thủ</b></span><span class="pc-wins"></span></div>
+        <div class="pc-time">0:00.0</div>
+        <div class="pc-bar"><i></i></div>
+        <div class="pc-sub"><span class="pc-pairs">0/56 cặp</span><canvas class="mini" width="56" height="32"></canvas></div>
+      </div>
+    </div>
+
+    <div id="boardWrap">
+      <div id="board"></div>
+      <div id="countdown" class="countdown hidden"><span></span></div>
+
+      <div id="waiting" class="waiting glass hidden">
+        <div class="share-head"><span class="dot-live"></span> Đang chờ đối thủ... gửi link này:</div>
+        <div class="join">
+          <input id="shareLink" readonly>
+          <button class="btn sq" id="copyBtn" aria-label="Copy"><i data-lucide="copy"></i></button>
+          <button class="btn primary sq hidden" id="nativeShareBtn" aria-label="Chia sẻ"><i data-lucide="share-2"></i></button>
+        </div>
+        <p class="hint-txt">Đối thủ vào là tự đếm ngược 3‑2‑1 rồi bắt đầu, cả 2 cùng một map.</p>
+      </div>
+    </div>
+
+    <div class="dock glass">
+      <button class="tool" id="hintBtn"><i data-lucide="lightbulb"></i><span>Gợi ý <em id="hintCount">3</em></span></button>
+      <button class="tool" id="shuffleBtn"><i data-lucide="shuffle"></i><span>Đảo <em id="shuffleCount">2</em></span></button>
+      <button class="tool primary" id="rematchBtn"><i data-lucide="rotate-ccw"></i><span>Ván mới</span></button>
+    </div>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-card glass">
+      <div class="modal-emoji" id="mEmoji">🏆</div>
+      <h2 id="mTitle"></h2>
+      <p id="mSub"></p>
+      <div id="mBody"></div>
+      <div class="modal-actions">
+        <button class="btn" id="mClose"><i data-lucide="eye"></i> Xem bàn</button>
+        <button class="btn primary" id="mRematch"><i data-lucide="rotate-ccw"></i> Ván mới</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast glass hidden"></div>
+
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

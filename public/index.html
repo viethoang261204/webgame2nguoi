@@ -2,116 +2,113 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#090b16">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Caro Vô Hạn</title>
+  <title>Game 2 Người</title>
+  <script>
+    // Link cũ dạng /?room=xxx là phòng caro
+    if (new URLSearchParams(location.search).get('room')) location.replace('/caro/' + location.search);
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/shared/ui.css">
+  <style>
+    body { overflow-y: auto; }
+    .wrap { max-width: 960px; margin: 0 auto;
+      padding: calc(36px + var(--st)) calc(16px + var(--sr)) calc(36px + var(--sb)) calc(16px + var(--sl)); }
+    header { text-align: center; margin-bottom: 32px; animation: rise .5s both; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px;
+      font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 10px var(--good); }
+    h1 { margin: 0; font-size: clamp(36px, 8vw, 60px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.05; }
+    h1 span { background: linear-gradient(90deg, #ff4d6d, #b14dff, #3ddcff); -webkit-background-clip: text;
+      background-clip: text; color: transparent; }
+    header p { color: var(--muted); font-size: 17px; margin: 12px 0 0; }
+
+    .games { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+    .game { position: relative; display: flex; flex-direction: column; border-radius: 24px; overflow: hidden;
+      text-decoration: none; transition: transform .2s, border-color .2s, box-shadow .2s; animation: rise .5s both; }
+    .game:nth-child(2) { animation-delay: .08s; } .game:nth-child(3) { animation-delay: .16s; }
+    @media (hover: hover) { .game:hover { transform: translateY(-4px); border-color: var(--line-strong);
+      box-shadow: 0 20px 50px rgba(0,0,0,.45); } }
+    .game:active { transform: scale(.98); }
+    .art { height: 170px; display: grid; place-items: center; position: relative; overflow: hidden; }
+    .art.caro { background: radial-gradient(circle at 50% 40%, #2a1f5c, #12142a); }
+    .art.pika { background: radial-gradient(circle at 50% 40%, #5c4a10, #1f1a0a); }
+    .art.soon { background: repeating-linear-gradient(45deg, #151830 0 14px, #12142a 14px 28px); }
+    .xo { display: grid; grid-template-columns: repeat(3, 40px); gap: 6px; transform: rotate(-6deg); }
+    .xo i { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,.05); display: grid; place-items: center;
+      font-style: normal; font-weight: 800; font-size: 24px; }
+    .xo .x { color: #ff4d6d; text-shadow: 0 0 14px #ff4d6d; } .xo .o { color: #3ddcff; text-shadow: 0 0 14px #3ddcff; }
+    .tiles { display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; transform: rotate(4deg); }
+    .tiles i { width: 40px; height: 46px; border-radius: 9px; background: linear-gradient(#fffaf0, #f1e4c6);
+      box-shadow: 0 4px 0 #c9b48a, 0 6px 14px rgba(0,0,0,.4); display: grid; place-items: center; font-style: normal; font-size: 24px; }
+    .tiles i.sel { outline: 3px solid #ffd60a; outline-offset: 1px; transform: translateY(-3px); }
+    .tiles i.gone { visibility: hidden; }
+    .badge { position: absolute; top: 12px; left: 12px; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px;
+      background: rgba(0,0,0,.45); border: 1px solid var(--line-strong); }
+    .badge.new { background: linear-gradient(135deg, #ffb703, #ff6b3d); border: 0; color: #1a1000; }
+    .info { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .info h3 { margin: 0; font-size: 22px; font-weight: 800; }
+    .info p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; flex: 1; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .tags span { font-size: 12px; padding: 4px 9px; border-radius: 8px; background: rgba(255,255,255,.06); color: #c5c9e6; }
+    .play { margin-top: 12px; }
+    .game.disabled { pointer-events: none; opacity: .55; }
+    footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 36px; }
+  </style>
 </head>
 <body>
   <div class="bg-blobs"><span></span><span></span><span></span></div>
+  <div class="wrap">
+    <header>
+      <div class="brand glass"><span class="dot"></span> Không cần tài khoản · gửi link là solo</div>
+      <h1>Game <span>2 Người</span></h1>
+      <p>Chọn game, tạo phòng, gửi link cho bạn bè và vào trận ngay.</p>
+    </header>
 
-  <!-- MENU -->
-  <div id="menu" class="screen">
-    <div class="card">
-      <div class="logo">
-        <div class="logo-grid">
-          <i class="lx">✕</i><i></i><i class="lo">○</i>
-          <i></i><i class="lx">✕</i><i></i>
-          <i class="lo">○</i><i></i><i class="lx">✕</i>
+    <div class="games">
+      <a class="game glass" href="/caro/">
+        <div class="art caro">
+          <span class="badge">🔥 Hot</span>
+          <div class="xo"><i class="x">✕</i><i></i><i class="o">○</i><i></i><i class="x">✕</i><i class="o">○</i><i class="o">○</i><i></i><i class="x">✕</i></div>
+        </div>
+        <div class="info">
+          <h3>Caro Vô Hạn</h3>
+          <p>Bàn cờ không giới hạn, xếp đủ 3–6 quân liên tiếp để thắng. Mỗi ván một theme mới.</p>
+          <div class="tags"><span>👥 Online</span><span>🤖 Đấu máy</span><span>🎨 10 theme</span></div>
+          <span class="btn primary play"><i data-lucide="play"></i> Chơi ngay</span>
+        </div>
+      </a>
+
+      <a class="game glass" href="/pikachu/">
+        <div class="art pika">
+          <span class="badge new">✨ Mới</span>
+          <div class="tiles"><i>🐶</i><i class="sel">🐱</i><i>🐸</i><i class="gone"></i><i>🦊</i>
+            <i>🐼</i><i>🐸</i><i class="gone"></i><i class="sel">🐱</i><i>🐵</i>
+            <i>🦊</i><i>🐼</i><i>🐶</i><i>🐵</i><i>🐧</i></div>
+        </div>
+        <div class="info">
+          <h3>Pikachu Solo</h3>
+          <p>Nối thú cổ điển. Hai người cùng một map, đua xem ai ăn hết trước. Có bảng tính giờ trực tiếp.</p>
+          <div class="tags"><span>⚔️ Solo 1v1</span><span>⏱️ Đua giờ</span><span>🧩 Cùng map</span></div>
+          <span class="btn primary play"><i data-lucide="play"></i> Chơi ngay</span>
+        </div>
+      </a>
+
+      <div class="game glass disabled">
+        <div class="art soon"><span style="font-size:44px">🎲</span></div>
+        <div class="info">
+          <h3>Sắp ra mắt</h3>
+          <p>Game mới đang được làm...</p>
         </div>
       </div>
-      <h1>Caro <span>Vô Hạn</span></h1>
-      <p class="sub">Bàn cờ không giới hạn · không cần tài khoản</p>
-
-      <div class="field">
-        <span><i data-lucide="target"></i> Thắng khi đủ</span>
-        <div class="seg" id="winLen">
-          <button data-v="3">3</button>
-          <button data-v="4">4</button>
-          <button data-v="5" class="on">5</button>
-          <button data-v="6">6</button>
-        </div>
-      </div>
-
-      <div class="modes">
-        <button class="mode featured" data-mode="online">
-          <div class="mode-ic"><i data-lucide="globe"></i></div>
-          <div class="mode-tx"><b>Chơi online</b><span>Tạo phòng &amp; gửi link cho bạn</span></div>
-          <i data-lucide="chevron-right" class="chev"></i>
-        </button>
-        <button class="mode" data-mode="bot">
-          <div class="mode-ic bot"><i data-lucide="bot"></i></div>
-          <div class="mode-tx"><b>Đấu với máy</b><span>Luyện tay với AI</span></div>
-          <i data-lucide="chevron-right" class="chev"></i>
-        </button>
-        <button class="mode" data-mode="local">
-          <div class="mode-ic local"><i data-lucide="users"></i></div>
-          <div class="mode-tx"><b>2 người 1 máy</b><span>Chuyền tay nhau đánh</span></div>
-          <i data-lucide="chevron-right" class="chev"></i>
-        </button>
-      </div>
-
-      <div class="divider"><span>hoặc vào phòng có sẵn</span></div>
-      <div class="join">
-        <input id="roomInput" placeholder="Mã phòng hoặc link..." autocapitalize="off" autocomplete="off" spellcheck="false">
-        <button class="btn primary sq" id="joinBtn" aria-label="Vào phòng"><i data-lucide="log-in"></i></button>
-      </div>
-      <p id="menuErr" class="err"></p>
     </div>
+
+    <footer>Made for fun · chơi vui là chính 😄</footer>
   </div>
-
-  <!-- GAME -->
-  <div id="game" class="screen hidden">
-    <canvas id="board"></canvas>
-
-    <div class="topbar">
-      <button class="icon glass" id="backBtn" aria-label="Menu"><i data-lucide="arrow-left"></i></button>
-      <div id="status" class="glass">...</div>
-      <div id="score" class="glass"></div>
-    </div>
-
-    <div id="share" class="share glass hidden">
-      <div class="share-head"><span class="dot-live"></span> Đang chờ đối thủ... gửi link này:</div>
-      <div class="share-row">
-        <input id="shareLink" readonly>
-        <button class="btn sq" id="copyBtn" aria-label="Copy"><i data-lucide="copy"></i></button>
-        <button class="btn primary sq hidden" id="nativeShareBtn" aria-label="Chia sẻ"><i data-lucide="share-2"></i></button>
-      </div>
-    </div>
-
-    <div class="bottombar">
-      <div class="dock glass">
-        <button class="tool" id="centerBtn"><i data-lucide="crosshair"></i><span>Về giữa</span></button>
-        <button class="tool" id="confirmBtn"><i data-lucide="pointer"></i><span>Chạm 2 lần</span></button>
-        <button class="tool" id="undoBtn"><i data-lucide="undo-2"></i><span>Đi lại</span></button>
-        <button class="tool primary" id="rematchBtn"><i data-lucide="rotate-ccw"></i><span>Ván mới</span></button>
-      </div>
-    </div>
-
-    <div id="modal" class="modal hidden">
-      <div class="modal-card glass">
-        <div class="modal-emoji" id="modalEmoji">🏆</div>
-        <h2 id="modalTitle">Bạn thắng!</h2>
-        <p id="modalSub"></p>
-        <div class="modal-actions">
-          <button class="btn" id="viewBtn"><i data-lucide="eye"></i> Xem bàn</button>
-          <button class="btn primary" id="modalRematch"><i data-lucide="rotate-ccw"></i> Ván mới</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="toast" class="toast glass hidden"></div>
-  </div>
-
   <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="client.js"></script>
+  <script>window.lucide?.createIcons();</script>
 </body>
 </html>

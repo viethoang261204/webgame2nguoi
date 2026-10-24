@@ -10,6 +10,9 @@ const io = new Server(server);
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (_, res) => res.send('ok'));
 
+require('./games/pikachu')(io);
+
+// ---------- Caro (namespace mặc định) ----------
 const rooms = new Map();
 const DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
 

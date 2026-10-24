@@ -44,6 +44,10 @@ body.playing .bg-blobs { display: none; }
   animation: rise .5s cubic-bezier(.2,.9,.3,1.2) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(24px) scale(.97); } }
 
+.home-link { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; color: var(--muted);
+  text-decoration: none; font-size: 14px; font-weight: 500; padding: 6px 10px 6px 6px; border-radius: 10px; margin-bottom: -6px; }
+.home-link svg.lucide { width: 18px; height: 18px; }
+@media (hover: hover) { .home-link:hover { color: var(--text); background: rgba(255,255,255,.06); } }
 .logo { display: flex; justify-content: center; }
 .logo-grid { display: grid; grid-template-columns: repeat(3, 34px); gap: 5px; padding: 10px; border-radius: 20px;
   background: var(--panel); border: 1px solid var(--line); box-shadow: 0 12px 40px rgba(124,92,255,.25);
